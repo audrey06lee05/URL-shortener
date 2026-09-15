@@ -25,6 +25,9 @@ app.get("/db-health", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+const { redirectToUrl } = require("./controllers/urlController");
+app.get("/:shortCode", redirectToUrl);
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

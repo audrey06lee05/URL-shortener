@@ -21,3 +21,17 @@ SELECT * FROM urls WHERE short_code = $1;
 -- Record one visit to a url, right before redirecting (part of GET /:shortCode)
 INSERT INTO clicks (url_id, clicked_at, referrer, user_agent)
 VALUES ($1, NOW(), $2, $3);
+
+-- List all urls with each one's click count, newest first (GET /api/urls)
+SELECT u.*, COUNT(c.id) AS click_count
+FROM urls u
+LEFT JOIN clicks c ON c.url_id = u.id
+GROUP BY u.id
+ORDER BY u.created_at DESC;
+
+-- Get one url by id (GET /api/urls/:id)
+SELECT * FROM urls WHERE id = $1;
+
+-- Delete one url by id, returns the deleted row (DELETE /api/urls/:id)
+-- (clicks for this url are removed automatically via ON DELETE CASCADE)
+DELETE FROM urls WHERE id = $1 RETURNING *;

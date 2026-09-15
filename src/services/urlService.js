@@ -40,4 +40,20 @@ async function createShortUrl({ originalUrl, customAlias, expiresAt }) {
   return result.rows[0];
 }
 
-module.exports = { createShortUrl };
+// Look up a url by its short_code, to redirect (GET /:shortCode)
+async function getUrlByShortCode(shortCode) {
+  const result = await pool.query("SELECT * FROM urls WHERE short_code = $1", [
+    shortCode,
+  ]);
+  return result.rows[0]; // undefined if no match
+}
+
+// Record one visit to a url, right before redirecting (part of GET /:shortCode)
+async function recordClick(urlId, { referrer, userAgent }) {
+  await pool.query(
+    "INSERT INTO clicks (url_id, clicked_at, referrer, user_agent) VALUES ($1, NOW(), $2, $3)",
+    [urlId, referrer || null, userAgent || null],
+  );
+}
+
+module.exports = { createShortUrl, getUrlByShortCode, recordClick };
