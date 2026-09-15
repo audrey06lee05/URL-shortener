@@ -15,6 +15,9 @@ Built as a learning project focused on REST API architecture (routes/controllers
 * Custom aliases and randomly generated short codes both go through the same uniqueness check before insert — the app retries with a new random code until one is free rather than ever risking a collision.
 * Click analytics (total clicks, last click, clicks-by-day) aren't stored anywhere — they're calculated at request time straight from the `clicks` table (`COUNT`, `MAX`, and a `GROUP BY DATE(clicked_at)`), so they can never drift out of sync with the actual click history.
 
+<img width="917" height="1018" alt="image" src="https://github.com/user-attachments/assets/5b7c2849-4544-4cb6-9416-c083f98f099f" />
+
+
 ## 🏗️ API Endpoints
 | Method | Endpoint | Returns |
 |---|---|---|
@@ -73,6 +76,9 @@ Built as a learning project focused on REST API architecture (routes/controllers
 | 404 | Short code or url id doesn't exist |
 | 409 | Custom alias already taken |
 | 410 | Short url exists but has expired |
+
+<img width="916" height="880" alt="image" src="https://github.com/user-attachments/assets/8c2e44bc-9d9f-47c6-a535-99164cea1473" />
+
 
 ## 🔧 Setup
 1. Create a Postgres database (e.g. `url_shortener`)
