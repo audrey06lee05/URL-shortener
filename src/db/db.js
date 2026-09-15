@@ -1,3 +1,5 @@
+// db.js — PostgreSQL connection pool, configured from .env.
+// Every query in the app goes through this same pool.
 const { Pool } = require("pg");
 
 const pool = new Pool({
