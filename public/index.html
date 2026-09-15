@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Shortener</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>URL Shortener</h1>
+    <p>Paste a long URL below and get a short one you can share.</p>
+  </header>
+
+  <main>
+    <section id="shorten-section">
+      <form id="shorten-form">
+        <label for="original-url">Long URL</label>
+        <input type="url" id="original-url" name="originalUrl" placeholder="https://example.com/a-very-long-link" required />
+
+        <label for="custom-alias">Custom Alias (optional)</label>
+        <input type="text" id="custom-alias" name="customAlias" placeholder="my-link" />
+
+        <label for="expires-at">Expiration Date (optional)</label>
+        <input type="date" id="expires-at" name="expiresAt" />
+
+        <button type="submit" id="submit-btn">Shorten URL</button>
+      </form>
+
+      <p id="form-error" class="error" hidden></p>
+
+      <div id="success-box" hidden>
+        <p>Your short URL:</p>
+        <div class="short-url-row">
+          <span id="short-url-text"></span>
+          <button id="copy-btn" type="button">Copy</button>
+        </div>
+        <p id="copy-confirm" class="hint" hidden>Copied!</p>
+      </div>
+    </section>
+
+    <section id="list-section">
+      <h2>Your Shortened URLs</h2>
+      <p id="list-loading" class="hint">Loading...</p>
+      <p id="list-empty" class="hint" hidden>No URLs yet — shorten one above to get started.</p>
+      <table id="url-table" hidden>
+        <thead>
+          <tr>
+            <th>Short URL</th>
+            <th>Original URL</th>
+            <th>Created</th>
+            <th>Expires</th>
+            <th>Clicks</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="url-table-body"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
