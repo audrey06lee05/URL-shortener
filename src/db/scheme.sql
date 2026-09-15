@@ -1,0 +1,15 @@
+CREATE TABLE urls (
+  id SERIAL PRIMARY KEY,
+  original_url TEXT NOT NULL,
+  short_code VARCHAR(20) UNIQUE NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMP
+);
+
+CREATE TABLE clicks (
+  id SERIAL PRIMARY KEY,
+  url_id INTEGER NOT NULL REFERENCES urls(id) ON DELETE CASCADE,
+  clicked_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  referrer TEXT,
+  user_agent TEXT
+);
