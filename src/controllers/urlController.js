@@ -3,6 +3,7 @@
 // Error cases throw instead of responding directly — Express 5 forwards
 // a thrown/rejected error from an async handler to errorHandler.js.
 const urlService = require("../services/urlService");
+const httpError = require("../utils/httpError");
 
 // Create a new shortened URL (POST /api/urls)
 async function createUrl(req, res) {
@@ -17,15 +18,11 @@ async function redirectToUrl(req, res) {
   const url = await urlService.getUrlByShortCode(shortCode);
 
   if (!url) {
-    const err = new Error("Short URL not found");
-    err.status = 404;
-    throw err;
+    throw httpError(404, "Short URL not found");
   }
 
   if (url.expires_at && new Date(url.expires_at) < new Date()) {
-    const err = new Error("This short URL has expired");
-    err.status = 410;
-    throw err;
+    throw httpError(410, "This short URL has expired");
   }
 
   await urlService.recordClick(url.id, {
@@ -46,9 +43,7 @@ async function listUrls(req, res) {
 async function getUrl(req, res) {
   const url = await urlService.getUrlById(req.id);
   if (!url) {
-    const err = new Error("URL not found");
-    err.status = 404;
-    throw err;
+    throw httpError(404, "URL not found");
   }
   res.json(url);
 }
@@ -57,9 +52,7 @@ async function getUrl(req, res) {
 async function deleteUrl(req, res) {
   const deleted = await urlService.deleteUrlById(req.id);
   if (!deleted) {
-    const err = new Error("URL not found");
-    err.status = 404;
-    throw err;
+    throw httpError(404, "URL not found");
   }
   res.status(204).send();
 }
@@ -68,9 +61,7 @@ async function deleteUrl(req, res) {
 async function getAnalytics(req, res) {
   const url = await urlService.getUrlById(req.id);
   if (!url) {
-    const err = new Error("URL not found");
-    err.status = 404;
-    throw err;
+    throw httpError(404, "URL not found");
   }
   const analytics = await urlService.getUrlAnalytics(req.id);
   res.json({

@@ -3,6 +3,18 @@
 // This is the only file that runs SQL for URL creation.
 const pool = require("../db/db");
 const generateShortCode = require("../utils/generateShortCode");
+const httpError = require("../utils/httpError");
+
+// Shared by both branches below (custom alias and random generation) —
+// was two copies of the same "SELECT id FROM urls WHERE short_code = $1"
+// query before this was pulled out
+async function isShortCodeTaken(shortCode) {
+  const existing = await pool.query(
+    "SELECT id FROM urls WHERE short_code = $1",
+    [shortCode],
+  );
+  return existing.rows.length > 0;
+}
 
 // Build and save a new urls row, returns the inserted row
 async function createShortUrl({ originalUrl, customAlias, expiresAt }) {
@@ -10,26 +22,14 @@ async function createShortUrl({ originalUrl, customAlias, expiresAt }) {
 
   if (shortCode) {
     // Custom alias — must not already be taken
-    const existing = await pool.query(
-      "SELECT id FROM urls WHERE short_code = $1",
-      [shortCode],
-    );
-    if (existing.rows.length > 0) {
-      const err = new Error("Custom alias already in use");
-      err.status = 409;
-      throw err;
+    if (await isShortCodeTaken(shortCode)) {
+      throw httpError(409, "Custom alias already in use");
     }
   } else {
     // No alias — keep generating random codes until one isn't taken
-    let isUnique = false;
-    while (!isUnique) {
+    do {
       shortCode = generateShortCode();
-      const existing = await pool.query(
-        "SELECT id FROM urls WHERE short_code = $1",
-        [shortCode],
-      );
-      isUnique = existing.rows.length === 0;
-    }
+    } while (await isShortCodeTaken(shortCode));
   }
 
   const result = await pool.query(
