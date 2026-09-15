@@ -6,7 +6,9 @@ function validateCreateUrl(req, res, next) {
   const { originalUrl } = req.body;
 
   if (!originalUrl) {
-    return res.status(400).json({ error: "originalUrl is required" });
+    const err = new Error("originalUrl is required");
+    err.status = 400;
+    return next(err);
   }
 
   try {
@@ -15,10 +17,9 @@ function validateCreateUrl(req, res, next) {
       throw new Error("Invalid protocol");
     }
   } catch {
-    // new URL() throws on anything that isn't a well-formed URL at all
-    return res
-      .status(400)
-      .json({ error: "originalUrl must be a valid http or https URL" });
+    const err = new Error("originalUrl must be a valid http or https URL");
+    err.status = 400;
+    return next(err);
   }
 
   next();

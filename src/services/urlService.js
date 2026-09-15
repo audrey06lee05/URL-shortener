@@ -83,6 +83,29 @@ async function deleteUrlById(id) {
   return result.rows[0]; // undefined if nothing was deleted
 }
 
+// Get click analytics for one url: total clicks, last click, clicks per day (GET /api/urls/:id/analytics)
+async function getUrlAnalytics(urlId) {
+  const totals = await pool.query(
+    "SELECT COUNT(*) AS total_clicks, MAX(clicked_at) AS last_click FROM clicks WHERE url_id = $1",
+    [urlId],
+  );
+
+  const byDay = await pool.query(
+    `SELECT DATE(clicked_at) AS day, COUNT(*) AS count
+     FROM clicks
+     WHERE url_id = $1
+     GROUP BY DATE(clicked_at)
+     ORDER BY day ASC`,
+    [urlId],
+  );
+
+  return {
+    totalClicks: Number(totals.rows[0].total_clicks),
+    lastClick: totals.rows[0].last_click,
+    clicksByDay: byDay.rows,
+  };
+}
+
 module.exports = {
   createShortUrl,
   getUrlByShortCode,
@@ -90,4 +113,5 @@ module.exports = {
   getAllUrls,
   getUrlById,
   deleteUrlById,
+  getUrlAnalytics,
 };
