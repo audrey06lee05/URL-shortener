@@ -73,7 +73,13 @@ async function getAnalytics(req, res) {
     throw err;
   }
   const analytics = await urlService.getUrlAnalytics(req.id);
-  res.json({ urlId: req.id, shortCode: url.short_code, ...analytics });
+  res.json({
+    urlId: req.id,
+    shortCode: url.short_code,
+    originalUrl: url.original_url,
+    createdAt: url.created_at,
+    ...analytics,
+  });
 }
 
 module.exports = { createUrl, redirectToUrl, listUrls, getUrl, deleteUrl, getAnalytics };

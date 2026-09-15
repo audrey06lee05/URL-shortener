@@ -90,20 +90,30 @@ button:hover:not(:disabled) { background: #1d4ed8; }
 }
 #copy-btn:hover { background: #000; }
 
-/* URL list table */
-#url-table {
+/* Tables — URL list (#url-table) and clicks-by-day (#clicks-by-day-table)
+   share the same look, so both selectors get the same rules */
+#url-table,
+#clicks-by-day-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
 }
 #url-table th,
-#url-table td {
+#url-table td,
+#clicks-by-day-table th,
+#clicks-by-day-table td {
   text-align: left;
   padding: 8px 6px;
   border-bottom: 1px solid #f0f1f3;
   vertical-align: middle;
 }
-#url-table th { color: #6b7280; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
+#url-table th,
+#clicks-by-day-table th {
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
 
 .original-url-cell {
   max-width: 220px;
@@ -133,3 +143,36 @@ button:hover:not(:disabled) { background: #1d4ed8; }
   color: #b42318;
 }
 .btn-danger:hover { background: #fee4e2; }
+
+/* Analytics page */
+header a { color: #2563eb; text-decoration: none; font-size: 0.9rem; }
+header a:hover { text-decoration: underline; }
+
+.url-meta { margin: 0 0 16px; }
+.url-meta strong { font-size: 1rem; word-break: break-all; }
+
+.stat-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.stat-box {
+  flex: 1;
+  min-width: 140px;
+  background: #f7f7f9;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-weight: 600;
+}
+.stat-value { font-size: 1.6rem; font-weight: 700; }
+.stat-value-small { font-size: 0.95rem; font-weight: 600; }

@@ -1,5 +1,7 @@
 // app.js — frontend logic for the URL Shortener UI. Talks to the Express
-// API with fetch(); no framework, no build step.
+// API with fetch(); no framework, no build step. Shared by both
+// index.html and analytics.html — each page's code only runs if the
+// elements it needs actually exist on the current page.
 
 const shortenForm = document.getElementById("shorten-form");
 const submitBtn = document.getElementById("submit-btn");
@@ -14,59 +16,9 @@ const listEmpty = document.getElementById("list-empty");
 const urlTable = document.getElementById("url-table");
 const urlTableBody = document.getElementById("url-table-body");
 
-// Handle the "Shorten URL" form submit
-shortenForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  formError.hidden = true;
-  successBox.hidden = true;
-
-  const originalUrl = document.getElementById("original-url").value.trim();
-  const customAlias = document.getElementById("custom-alias").value.trim();
-  const expiresAt = document.getElementById("expires-at").value;
-
-  const body = { originalUrl };
-  if (customAlias) body.customAlias = customAlias;
-  if (expiresAt) body.expiresAt = expiresAt;
-
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Shortening...";
-
-  try {
-    const response = await fetch("/api/urls", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      formError.textContent = data.error || "Something went wrong";
-      formError.hidden = false;
-      return;
-    }
-
-    const shortUrl = `${window.location.origin}/${data.short_code}`;
-    shortUrlText.textContent = shortUrl;
-    successBox.hidden = false;
-    shortenForm.reset();
-    loadUrls(); // refresh the list so the new URL shows up immediately
-  } catch (err) {
-    formError.textContent = "Could not reach the server — is it running?";
-    formError.hidden = false;
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Shorten URL";
-  }
-});
-
-// Copy the generated short URL to the clipboard
-copyBtn.addEventListener("click", async () => {
-  await navigator.clipboard.writeText(shortUrlText.textContent);
-  copyConfirm.hidden = false;
-  setTimeout(() => (copyConfirm.hidden = true), 1500);
-});
+const analyticsContent = document.getElementById("analytics-content");
+const analyticsLoading = document.getElementById("analytics-loading");
+const analyticsError = document.getElementById("analytics-error");
 
 // Format an ISO timestamp as a short readable date, or "—" if null
 function formatDate(isoString) {
@@ -74,10 +26,66 @@ function formatDate(isoString) {
   return new Date(isoString).toLocaleDateString();
 }
 
+// ---------- index.html: shorten form ----------
+if (shortenForm) {
+  shortenForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    formError.hidden = true;
+    successBox.hidden = true;
+
+    const originalUrl = document.getElementById("original-url").value.trim();
+    const customAlias = document.getElementById("custom-alias").value.trim();
+    const expiresAt = document.getElementById("expires-at").value;
+
+    const body = { originalUrl };
+    if (customAlias) body.customAlias = customAlias;
+    if (expiresAt) body.expiresAt = expiresAt;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Shortening...";
+
+    try {
+      const response = await fetch("/api/urls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        formError.textContent = data.error || "Something went wrong";
+        formError.hidden = false;
+        return;
+      }
+
+      const shortUrl = `${window.location.origin}/${data.short_code}`;
+      shortUrlText.textContent = shortUrl;
+      successBox.hidden = false;
+      shortenForm.reset();
+      loadUrls(); // refresh the list so the new URL shows up immediately
+    } catch (err) {
+      formError.textContent = "Could not reach the server — is it running?";
+      formError.hidden = false;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Shorten URL";
+    }
+  });
+
+  copyBtn.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(shortUrlText.textContent);
+    copyConfirm.hidden = false;
+    setTimeout(() => (copyConfirm.hidden = true), 1500);
+  });
+}
+
+// ---------- index.html: URL list ----------
+
 // Build one <tr> for a url row returned by GET /api/urls
 function buildUrlRow(url) {
   const tr = document.createElement("tr");
-
   const shortUrl = `${window.location.origin}/${url.short_code}`;
 
   const shortCell = document.createElement("td");
@@ -122,7 +130,6 @@ function buildUrlRow(url) {
   actionsCell.appendChild(deleteBtn);
 
   tr.appendChild(actionsCell);
-
   return tr;
 }
 
@@ -161,4 +168,72 @@ async function deleteUrl(id, shortUrl) {
   loadUrls();
 }
 
-loadUrls();
+if (urlTable) {
+  loadUrls();
+}
+
+// ---------- analytics.html ----------
+
+// Fetch and render click analytics for the url id in the ?id= query param
+async function loadAnalytics() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+
+  if (!id) {
+    analyticsLoading.hidden = true;
+    analyticsError.textContent = "No URL id given.";
+    analyticsError.hidden = false;
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/urls/${id}/analytics`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      analyticsLoading.hidden = true;
+      analyticsError.textContent = data.error || "Could not load analytics";
+      analyticsError.hidden = false;
+      return;
+    }
+
+    document.getElementById("analytics-short-url").textContent =
+      `${window.location.origin}/${data.shortCode}`;
+    document.getElementById("analytics-original-url").textContent = data.originalUrl;
+    document.getElementById("stat-total-clicks").textContent = data.totalClicks;
+    document.getElementById("stat-created").textContent = formatDate(data.createdAt);
+    document.getElementById("stat-last-click").textContent = formatDate(data.lastClick);
+
+    const byDayBody = document.getElementById("clicks-by-day-body");
+    const byDayTable = document.getElementById("clicks-by-day-table");
+    const byDayEmpty = document.getElementById("clicks-by-day-empty");
+
+    if (data.clicksByDay.length === 0) {
+      byDayEmpty.hidden = false;
+    } else {
+      byDayBody.innerHTML = "";
+      data.clicksByDay.forEach((row) => {
+        const tr = document.createElement("tr");
+        const dayCell = document.createElement("td");
+        dayCell.textContent = row.day;
+        const countCell = document.createElement("td");
+        countCell.textContent = row.count;
+        tr.appendChild(dayCell);
+        tr.appendChild(countCell);
+        byDayBody.appendChild(tr);
+      });
+      byDayTable.hidden = false;
+    }
+
+    analyticsContent.hidden = false;
+  } catch (err) {
+    analyticsError.textContent = "Could not reach the server — is it running?";
+    analyticsError.hidden = false;
+  } finally {
+    analyticsLoading.hidden = true;
+  }
+}
+
+if (analyticsContent) {
+  loadAnalytics();
+}
