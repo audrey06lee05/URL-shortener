@@ -35,3 +35,15 @@ SELECT * FROM urls WHERE id = $1;
 -- Delete one url by id, returns the deleted row (DELETE /api/urls/:id)
 -- (clicks for this url are removed automatically via ON DELETE CASCADE)
 DELETE FROM urls WHERE id = $1 RETURNING *;
+
+-- Total clicks + most recent click for one url (part of GET /api/urls/:id/analytics)
+SELECT COUNT(*) AS total_clicks, MAX(clicked_at) AS last_click
+FROM clicks
+WHERE url_id = $1;
+
+-- Clicks grouped by calendar day for one url (part of GET /api/urls/:id/analytics)
+SELECT DATE(clicked_at) AS day, COUNT(*) AS count
+FROM clicks
+WHERE url_id = $1
+GROUP BY DATE(clicked_at)
+ORDER BY day ASC;

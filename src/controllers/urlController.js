@@ -40,4 +40,40 @@ async function redirectToUrl(req, res) {
   res.redirect(url.original_url);
 }
 
-module.exports = { createUrl, redirectToUrl };
+// List all shortened URLs (GET /api/urls)
+async function listUrls(req, res) {
+  const urls = await urlService.getAllUrls();
+  res.json(urls);
+}
+
+// Get one shortened URL by id (GET /api/urls/:id)
+async function getUrl(req, res) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: "id must be a number" });
+  }
+
+  const url = await urlService.getUrlById(id);
+  if (!url) {
+    return res.status(404).json({ error: "URL not found" });
+  }
+
+  res.json(url);
+}
+
+// Delete one shortened URL by id (DELETE /api/urls/:id)
+async function deleteUrl(req, res) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: "id must be a number" });
+  }
+
+  const deleted = await urlService.deleteUrlById(id);
+  if (!deleted) {
+    return res.status(404).json({ error: "URL not found" });
+  }
+
+  res.status(204).send();
+}
+
+module.exports = { createUrl, redirectToUrl, listUrls, getUrl, deleteUrl };

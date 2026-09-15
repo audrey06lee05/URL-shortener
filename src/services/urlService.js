@@ -56,4 +56,38 @@ async function recordClick(urlId, { referrer, userAgent }) {
   );
 }
 
-module.exports = { createShortUrl, getUrlByShortCode, recordClick };
+// List all urls with each one's click count, newest first (GET /api/urls)
+async function getAllUrls() {
+  const result = await pool.query(`
+    SELECT u.*, COUNT(c.id) AS click_count
+    FROM urls u
+    LEFT JOIN clicks c ON c.url_id = u.id
+    GROUP BY u.id
+    ORDER BY u.created_at DESC
+  `);
+  return result.rows;
+}
+
+// Get one url by id (GET /api/urls/:id)
+async function getUrlById(id) {
+  const result = await pool.query("SELECT * FROM urls WHERE id = $1", [id]);
+  return result.rows[0]; // undefined if no match
+}
+
+// Delete one url by id, returns the deleted row (DELETE /api/urls/:id)
+async function deleteUrlById(id) {
+  const result = await pool.query(
+    "DELETE FROM urls WHERE id = $1 RETURNING *",
+    [id],
+  );
+  return result.rows[0]; // undefined if nothing was deleted
+}
+
+module.exports = {
+  createShortUrl,
+  getUrlByShortCode,
+  recordClick,
+  getAllUrls,
+  getUrlById,
+  deleteUrlById,
+};

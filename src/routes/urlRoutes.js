@@ -2,10 +2,18 @@
 // Mounted at /api/urls in app.js, so this file's "/" is really "/api/urls".
 const express = require("express");
 const router = express.Router();
-const { createUrl } = require("../controllers/urlController");
+const {
+  createUrl,
+  listUrls,
+  getUrl,
+  deleteUrl,
+} = require("../controllers/urlController");
 const { validateCreateUrl } = require("../middleware/validateUrl");
 
 // Create a shortened URL
 router.post("/", validateCreateUrl, createUrl);
+router.get("/", listUrls);
+router.get("/:id", getUrl);
+router.delete("/:id", deleteUrl);
 
 module.exports = router;
