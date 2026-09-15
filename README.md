@@ -8,6 +8,8 @@ Built as a learning project focused on REST API architecture (routes/controllers
 * Node.js + Express
 * `pg` (raw SQL, no ORM)
 * Vanilla HTML/CSS/JS — no framework, no build step
+<img width="505" height="877" alt="image" src="https://github.com/user-attachments/assets/eccc3f08-6093-4466-86c9-ed0ca01430b3" />
+
 
 ## 🗄️ Schema Design
 * **urls** — id, original_url, short_code (`UNIQUE`), created_at, expires_at (nullable — no expiration if left unset)
